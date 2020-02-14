@@ -3,21 +3,38 @@
 
 SECTION .text;
 
-mov ax, 0xB800;
-mov fs, ax;
-;mov ds, ax;origin code
+jmp 0x07c0:START
 
-mov bh, 0x2A
-mov bl, 'O'
-mov [fs:0x00],bx
-mov bl, 'S'
-mov [fs:0x02],bx
-;mov byte [0x00], 'O'; origin code
-;mov byte [0x01], 0x4A;origin code
-;mov byte [0x02], 'S';origin code
-;mov byte [0x03], 0x4A;origin code
+START:
+    mov ax, 0x07c0
+    mov ds, ax
+    mov ax, 0xB800
+    mov es,ax
 
-jmp $;
+    mov si, 0
+
+.SCREENCLEARLOOP:
+    mov byte [es:si],0
+    mov byte [es:si+1],0x4A
+    add si, 2
+    cmp si, 80 * 25 *2
+    jl .SCREENCLEARLOOP
+    mov si, 0
+    mov di, 0
+
+.MESSAGELOOP:
+    mov cl, byte [ si + MESSAGE1]
+    cmp cl,0
+    je .MESSAGEEND
+    mov byte [es:di],cl
+    add si, 1
+    add di, 2
+    jmp .MESSAGELOOP
+
+.MESSAGEEND
+    jmp $
+
+MESSAGE1: db 'Secure OS Boot Loader init~!', 0
 
 times 510 - ($ - $$) db 0x00;
 db 0x55;
